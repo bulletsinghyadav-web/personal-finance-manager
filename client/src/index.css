@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  body {
+    @apply bg-paper text-ink font-sans;
+  }
+  html.dark body {
+    @apply bg-night text-paper;
+  }
+  h1, h2, h3 {
+    @apply font-serif;
+  }
+  ::selection {
+    @apply bg-teal-100;
+  }
+  *:focus-visible {
+    outline: 2px solid theme('colors.teal.500');
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-paper-raised border border-line rounded-lg shadow-card;
+  }
+  html.dark .card {
+    @apply bg-night-raised border-white/10;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded font-medium text-sm px-4 py-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn bg-teal-500 text-white hover:bg-teal-600;
+  }
+  .btn-secondary {
+    @apply btn bg-transparent border border-line text-ink hover:bg-paper-sunken;
+  }
+  html.dark .btn-secondary {
+    @apply text-paper border-white/15 hover:bg-white/5;
+  }
+  .btn-danger {
+    @apply btn bg-brick-500 text-white hover:bg-brick-600;
+  }
+  .input {
+    @apply w-full rounded border border-line bg-paper-raised px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-teal-500 focus:ring-1 focus:ring-teal-500;
+  }
+  html.dark .input {
+    @apply bg-night-raised border-white/15 text-paper;
+  }
+  .label {
+    @apply block text-sm font-medium text-ink-soft mb-1;
+  }
+  html.dark .label {
+    @apply text-paper/70;
+  }
+  .figure {
+    @apply font-mono tabular-nums;
+  }
+}

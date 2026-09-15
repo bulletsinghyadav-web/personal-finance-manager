@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_dev_pw}
+      POSTGRES_DB: ${POSTGRES_DB:-finance_dev}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: ./server
+    command: sh -c "npx node-pg-migrate up -m migrations"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_dev_pw}@postgres:5432/${POSTGRES_DB:-finance_dev}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  server:
+    build:
+      context: ./server
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_dev_pw}@postgres:5432/${POSTGRES_DB:-finance_dev}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access_secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change_me_refresh_secret}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:5173}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-Finance App <no-reply@example.com>}
+    ports:
+      - '4000:4000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:4000/api/v1}
+    restart: unless-stopped
+    ports:
+      - '5173:80'
+    depends_on:
+      - server
+
+volumes:
+  postgres_data:

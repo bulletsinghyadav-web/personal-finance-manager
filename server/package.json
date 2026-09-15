@@ -1,0 +1,47 @@
+{
+  "name": "personal-finance-server",
+  "version": "1.0.0",
+  "description": "Personal Finance & Expense Management System - backend API",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node -r dotenv/config src/server.js",
+    "dev": "node -r dotenv/config --watch src/server.js",
+    "ensure:db": "node -r dotenv/config scripts/ensure-db.js",
+    "migrate": "node -r dotenv/config ./node_modules/node-pg-migrate/bin/node-pg-migrate up -m migrations",
+    "migrate:test": "export DATABASE_URL=$(node -p \"require('dotenv').config(); process.env.TEST_DATABASE_URL\") && node -r dotenv/config ./node_modules/node-pg-migrate/bin/node-pg-migrate up -m migrations",
+    "migrate:down": "node -r dotenv/config ./node_modules/node-pg-migrate/bin/node-pg-migrate down -m migrations",
+    "seed": "node -r dotenv/config src/seeds/seed.js",
+    "test": "vitest run src/tests/unit",
+    "test:integration": "npm run ensure:db && export DATABASE_URL=$(node -p \"require('dotenv').config(); process.env.TEST_DATABASE_URL\") && cross-env NODE_ENV=test node -r dotenv/config ./node_modules/vitest/vitest.mjs run src/tests/integration",
+    "test:all": "npm run test && npm run test:integration",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "decimal.js": "^10.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.4.1",
+    "helmet": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "node-pg-migrate": "^7.9.1",
+    "nodemailer": "^6.9.16",
+    "pg": "^8.13.1",
+    "swagger-ui-express": "^5.0.1",
+    "uuid": "^9.0.1",
+    "yamljs": "^0.3.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "supertest": "^7.0.0",
+    "vitest": "^2.1.5"
+  }
+}

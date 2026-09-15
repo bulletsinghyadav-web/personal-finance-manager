@@ -1,0 +1,160 @@
+openapi: 3.0.3
+info:
+  title: Personal Finance & Expense Management API
+  version: 1.0.0
+  description: >
+    REST API for managing personal income, expenses, budgets, accounts and
+    multi-currency financial reporting. All endpoints under /api/v1 except
+    /auth/register, /auth/login, /auth/refresh, /auth/forgot-password and
+    /auth/reset-password require a valid session (httpOnly cookie).
+servers:
+  - url: /api/v1
+paths:
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, name]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8 }
+                name: { type: string }
+                defaultCurrency: { type: string, example: INR }
+      responses:
+        '201': { description: User created, session cookies set }
+        '409': { description: Email already registered }
+  /auth/login:
+    post:
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200': { description: Logged in, session cookies set }
+        '401': { description: Invalid credentials }
+  /auth/logout:
+    post:
+      summary: Log out and revoke the current refresh token
+      responses:
+        '204': { description: Logged out }
+  /auth/me:
+    get:
+      summary: Get the current authenticated user's profile
+      responses:
+        '200': { description: Current user }
+        '401': { description: Not authenticated }
+  /transactions:
+    get:
+      summary: List the authenticated user's transactions (paginated, filterable)
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, default: 20 }
+        - in: query
+          name: type
+          schema: { type: string, enum: [INCOME, EXPENSE, TRANSFER] }
+        - in: query
+          name: categoryId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: accountId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: startDate
+          schema: { type: string, format: date }
+        - in: query
+          name: endDate
+          schema: { type: string, format: date }
+        - in: query
+          name: sortBy
+          schema: { type: string, enum: [transactionDate, amount] }
+        - in: query
+          name: sortOrder
+          schema: { type: string, enum: [asc, desc] }
+      responses:
+        '200': { description: Paginated transaction list }
+    post:
+      summary: Create a transaction (income, expense, or transfer)
+      responses:
+        '201': { description: Transaction created }
+  /transactions/{id}:
+    get:
+      summary: Get a single transaction by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Transaction }
+        '404': { description: Not found }
+    patch:
+      summary: Update a transaction
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200': { description: Updated transaction }
+    delete:
+      summary: Delete a transaction
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204': { description: Deleted }
+  /budgets:
+    get:
+      summary: List budgets with computed utilization
+      responses:
+        '200': { description: Budgets }
+    post:
+      summary: Create a monthly budget with optional per-category limits
+      responses:
+        '201': { description: Budget created }
+        '409': { description: Budget already exists for this period/currency }
+  /dashboard/summary:
+    get:
+      summary: Aggregate financial summary for the dashboard, currency-aware
+      parameters:
+        - in: query
+          name: currency
+          schema: { type: string }
+      responses:
+        '200': { description: Dashboard summary }
+  /reports/monthly:
+    get:
+      summary: Monthly income/expense/budget report
+      parameters:
+        - in: query
+          name: month
+          schema: { type: integer }
+        - in: query
+          name: year
+          schema: { type: integer }
+        - in: query
+          name: currency
+          schema: { type: string }
+      responses:
+        '200': { description: Monthly report }
